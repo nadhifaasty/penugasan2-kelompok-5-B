@@ -1,0 +1,48 @@
+import hashlib
+from sqlalchemy.orm import Session
+from fastapi import HTTPException
+from app.repositories.account_repository import AccountRepository
+from app.schemas.account import AccountCreate, AccountUpdate
+
+repo = AccountRepository()
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+class AccountService:
+
+    def get_all(self, db: Session):
+        return repo.get_all(db)
+
+    def get_by_id(self, db: Session, id: int):
+        account = repo.get_by_id(db, id)
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return account
+
+    def get_by_user_id(self, db: Session, user_id: int):
+        return repo.get_by_user_id(db, user_id)
+
+    def create(self, db: Session, data: AccountCreate):
+        # cek username duplikat
+        existing = repo.get_by_username(db, data.username)
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail="Username already taken"
+            )
+        # hash password sebelum simpan
+        data.password = hash_password(data.password)
+        return repo.create(db, data)
+
+    def update(self, db: Session, id: int, data: AccountUpdate):
+        self.get_by_id(db, id)
+        # hash password baru kalau ada
+        if data.password:
+            data.password = hash_password(data.password)
+        return repo.update(db, id, data)
+
+    def delete(self, db: Session, id: int):
+        self.get_by_id(db, id)
+        repo.delete(db, id)
+        return {"message": "Account deleted successfully"}

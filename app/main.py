@@ -4,4 +4,6 @@ from app.routers import role_router, user_router, account_router, registration_r
 app = FastAPI(title="CRUD API", version="1.0.0")
 
 app.include_router(role_router.router)
+app.include_router(user_router.router)
+app.include_router(account_router.router)
 # Router lain di-include setelah anggota lain selesai

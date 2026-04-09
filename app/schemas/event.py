@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator, field_serializer, model_validator
 from typing import Optional
 from datetime import datetime
 
@@ -22,12 +22,31 @@ class EventCreate(BaseModel):
             raise ValueError("ended_at must be after started_at")
         return self
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Workshop Python",
+                "description": "Pelatihan dasar FastAPI",
+                "quota": 50,
+                "started_at": "2026-05-01T09:00:00",
+                "ended_at": "2026-05-01T12:00:00"
+            }
+        }
+
 class EventUpdate(BaseModel):
     name:        Optional[str]      = None
     description: Optional[str]      = None
     quota:       Optional[int]      = None
     started_at:  Optional[datetime] = None
     ended_at:    Optional[datetime] = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Workshop Python Lanjutan",
+                "quota": 60
+            }
+        }
 
 class EventResponse(BaseModel):
     id:          int
@@ -38,6 +57,14 @@ class EventResponse(BaseModel):
     ended_at:    datetime
     created_at:  Optional[datetime]
     updated_at:  Optional[datetime]
+
+    @field_serializer('started_at')
+    def serialize_started_at(self, value: datetime):
+        return value.strftime('%Y-%m-%d %H:%M')
+
+    @field_serializer('ended_at')
+    def serialize_ended_at(self, value: datetime):
+        return value.strftime('%Y-%m-%d %H:%M')
 
     class Config:
         from_attributes = True

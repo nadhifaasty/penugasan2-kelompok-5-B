@@ -1,11 +1,18 @@
 from sqlalchemy.orm import Session
 from app.models.account import Account
 from app.schemas.account import AccountCreate, AccountUpdate
+from typing import Optional
 
 class AccountRepository:
 
-    def get_all(self, db: Session):
-        return db.query(Account).all()
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        query = db.query(Account)
+        if search:
+            query = query.filter(
+                (Account.username.contains(search)) |
+                (Account.email.contains(search))
+            )
+        return query.offset(skip).limit(limit).all()
 
     def get_by_id(self, db: Session, id: int):
         return db.query(Account).filter(Account.id == id).first()

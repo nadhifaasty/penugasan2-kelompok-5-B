@@ -1,14 +1,16 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
+from typing import Optional
 
 repo = UserRepository()
 
 class UserService:
 
-    def get_all(self, db: Session):
-        users = repo.get_all(db)
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        users = repo.get_all(db, skip, limit, search)
         return users
 
     def get_by_id(self, db: Session, id: int):
@@ -28,6 +30,26 @@ class UserService:
 
     def delete(self, db: Session, id: int):
         # pastikan user ada dulu
-        self.get_by_id(db, id)
-        repo.delete(db, id)
+        user = self.get_by_id(db, id)
+
+        if len(user.accounts) > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete user with active accounts"
+            )
+
+        if len(user.registrations) > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete user with active registrations"
+            )
+
+        try:
+            repo.delete(db, id)
+        except IntegrityError:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete user because related records still exist"
+            )
+
         return {"message": "User deleted successfully"}

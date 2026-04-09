@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.registration_repository import RegistrationRepository
-from app.schemas.registration import RegistrationCreate
+from app.schemas.registration import RegistrationCreate, RegistrationUpdate
 
 # import untuk validasi keberadaan user & event
 from app.models.user  import User
@@ -73,6 +73,40 @@ class RegistrationService:
             )
 
         return repo.create(db, data)
+
+    def update(self, db: Session, id: int, data: RegistrationUpdate):
+        # validasi registration ada
+        reg = self.get_by_id(db, id)
+
+        # jika user_id berubah, validasi user baru ada
+        if data.user_id is not None and data.user_id != reg.user_id:
+            user = db.query(User).filter(User.id == data.user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+        # jika event_id berubah, validasi event baru ada dan kuota
+        if data.event_id is not None and data.event_id != reg.event_id:
+            event = db.query(Event).filter(Event.id == data.event_id).first()
+            if not event:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            # cek kuota event yang baru
+            current_registrations = len(repo.get_by_event_id(db, data.event_id))
+            if current_registrations >= event.quota:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Event is full, quota exceeded"
+                )
+
+            # cek duplikat registrasi
+            existing = repo.get_by_user_and_event(db, reg.user_id, data.event_id)
+            if existing and existing.id != id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="User already registered for this event"
+                )
+
+        return repo.update(db, id, data)
 
     def delete(self, db: Session, id: int):
         self.get_by_id(db, id)   # validasi ada dulu

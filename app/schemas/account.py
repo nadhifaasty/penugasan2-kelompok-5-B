@@ -9,11 +9,31 @@ class AccountCreate(BaseModel):
     username: str
     password: str
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "user_id": 1,
+                "role_id": 2,
+                "email": "user@example.com",
+                "username": "user123",
+                "password": "securepassword"
+            }
+        }
+
 class AccountUpdate(BaseModel):
     email: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
     role_id: Optional[int] = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "new.email@example.com",
+                "username": "newuser",
+                "password": "newsecurepassword"
+            }
+        }
 
 class AccountResponse(BaseModel):
     id: int

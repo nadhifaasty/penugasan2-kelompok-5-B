@@ -1,13 +1,14 @@
 from sqlalchemy.orm import Session
 from app.services.account_service import AccountService
 from app.schemas.account import AccountCreate, AccountUpdate
+from typing import Optional
 
 service = AccountService()
 
 class AccountController:
 
-    def get_all(self, db: Session):
-        return service.get_all(db)
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        return service.get_all(db, skip, limit, search)
 
     def get_by_id(self, db: Session, id: int):
         return service.get_by_id(db, id)

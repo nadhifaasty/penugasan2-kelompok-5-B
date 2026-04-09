@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.account_repository import AccountRepository
 from app.schemas.account import AccountCreate, AccountUpdate
+from typing import Optional
 
 repo = AccountRepository()
 
@@ -11,8 +12,8 @@ def hash_password(password: str) -> str:
 
 class AccountService:
 
-    def get_all(self, db: Session):
-        return repo.get_all(db)
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        return repo.get_all(db, skip, limit, search)
 
     def get_by_id(self, db: Session, id: int):
         account = repo.get_by_id(db, id)

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.registration import Registration
-from app.schemas.registration import RegistrationCreate
+from app.schemas.registration import RegistrationCreate, RegistrationUpdate
 
 class RegistrationRepository:
 
@@ -31,6 +31,16 @@ class RegistrationRepository:
     def create(self, db: Session, data: RegistrationCreate):
         reg = Registration(**data.model_dump())
         db.add(reg)
+        db.commit()
+        db.refresh(reg)
+        return reg
+
+    def update(self, db: Session, id: int, data: RegistrationUpdate):
+        reg = self.get_by_id(db, id)
+        if not reg:
+            return None
+        for key, val in data.model_dump(exclude_unset=True).items():
+            setattr(reg, key, val)
         db.commit()
         db.refresh(reg)
         return reg

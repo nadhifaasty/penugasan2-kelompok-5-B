@@ -1,11 +1,15 @@
 from sqlalchemy.orm import Session
 from app.models.event import Event
 from app.schemas.event import EventCreate, EventUpdate
+from typing import Optional
 
 class EventRepository:
 
-    def get_all(self, db: Session):
-        return db.query(Event).all()
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        query = db.query(Event)
+        if search:
+            query = query.filter(Event.name.contains(search))
+        return query.offset(skip).limit(limit).all()
 
     def get_by_id(self, db: Session, id: int):
         return db.query(Event).filter(Event.id == id).first()

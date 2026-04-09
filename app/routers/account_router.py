@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 from app.controllers.account_controller import AccountController
 from app.schemas.account import AccountCreate, AccountUpdate, AccountResponse
@@ -9,8 +9,13 @@ router     = APIRouter(prefix="/accounts", tags=["Account"])
 controller = AccountController()
 
 @router.get("/", response_model=List[AccountResponse])
-def get_all_accounts(db: Session = Depends(get_db)):
-    return controller.get_all(db)
+def get_all_accounts(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None
+):
+    return controller.get_all(db, skip, limit, search)
 
 @router.get("/user/{user_id}", response_model=List[AccountResponse])
 def get_accounts_by_user(user_id: int, db: Session = Depends(get_db)):

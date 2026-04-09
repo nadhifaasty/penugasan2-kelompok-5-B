@@ -1,11 +1,19 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+from typing import Optional
 
 class UserRepository:
 
-    def get_all(self, db: Session):
-        return db.query(User).all()
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        query = db.query(User)
+        if search:
+            query = query.filter(
+                (User.first_name.contains(search)) |
+                (User.last_name.contains(search)) |
+                (User.whatsapp.contains(search))
+            )
+        return query.offset(skip).limit(limit).all()
 
     def get_by_id(self, db: Session, id: int):
         return db.query(User).filter(User.id == id).first()

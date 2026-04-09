@@ -2,13 +2,14 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.event_repository import EventRepository
 from app.schemas.event import EventCreate, EventUpdate
+from typing import Optional
 
 repo = EventRepository()
 
 class EventService:
 
-    def get_all(self, db: Session):
-        return repo.get_all(db)
+    def get_all(self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None):
+        return repo.get_all(db, skip, limit, search)
 
     def get_by_id(self, db: Session, id: int):
         event = repo.get_by_id(db, id)

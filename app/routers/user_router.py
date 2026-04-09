@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 from app.controllers.user_controller import UserController
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
@@ -9,8 +9,13 @@ router     = APIRouter(prefix="/users", tags=["User"])
 controller = UserController()
 
 @router.get("/", response_model=List[UserResponse])
-def get_all_users(db: Session = Depends(get_db)):
-    return controller.get_all(db)
+def get_all_users(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None
+):
+    return controller.get_all(db, skip, limit, search)
 
 @router.get("/{id}", response_model=UserResponse)
 def get_user(id: int, db: Session = Depends(get_db)):

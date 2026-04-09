@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 from app.controllers.event_controller import EventController
 from app.schemas.event import EventCreate, EventUpdate, EventResponse
@@ -9,8 +9,13 @@ router     = APIRouter(prefix="/events", tags=["Event"])
 controller = EventController()
 
 @router.get("/", response_model=List[EventResponse])
-def get_all_events(db: Session = Depends(get_db)):
-    return controller.get_all(db)
+def get_all_events(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None
+):
+    return controller.get_all(db, skip, limit, search)
 
 @router.get("/upcoming", response_model=List[EventResponse])
 def get_upcoming_events(db: Session = Depends(get_db)):
